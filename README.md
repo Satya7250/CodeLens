@@ -1,159 +1,335 @@
-# Turborepo starter
+# CodeLens
 
-This Turborepo starter is maintained by the Turborepo core team.
+AI-powered GitHub Codebase Assistant.
 
-## Using this example
+CodeLens helps developers understand repositories faster by indexing source code, retrieving relevant context, and answering questions grounded in the codebase.
 
-Run the following command:
+> ChatGPT for your GitHub Repository.
 
-```sh
-npx create-turbo@latest
+---
+
+## Features
+
+- GitHub Authentication
+- Repository Selection
+- Repository Indexing
+- AI-Powered Codebase Chat
+- Source References
+- Vector Search with pgvector
+- Repository-Aware Answers
+- Background Indexing with Inngest
+
+---
+
+## Tech Stack
+
+### Frontend
+
+- Next.js
+- TypeScript
+- App Router
+- Tailwind CSS
+- shadcn/ui
+
+### Backend
+
+- Route Handlers
+- Inngest
+
+### Database
+
+- PostgreSQL
+- pgvector
+- Drizzle ORM
+
+### GitHub
+
+- GitHub OAuth
+- Octokit
+
+### AI
+
+- Embeddings
+- Retrieval-Augmented Generation (RAG)
+- LLM Integration
+
+---
+
+## Architecture
+
+```text
+apps/
+└── web
+
+packages/
+├── ai
+├── db
+├── github
+├── code-parser
+├── types
+├── ui
+└── config
 ```
 
-## What's inside?
+### Package Responsibilities
 
-This Turborepo includes the following packages/apps:
+| Package     | Responsibility                            |
+| ----------- | ----------------------------------------- |
+| web         | UI, Authentication, Dashboard, API Routes |
+| ai          | Embeddings, Retrieval, Prompt Building    |
+| db          | Database, Drizzle, Queries                |
+| github      | GitHub API Integration                    |
+| code-parser | File Filtering & Chunking                 |
+| types       | Shared Types                              |
+| ui          | Shared Components                         |
+| config      | Shared Configurations                     |
 
-### Apps and Packages
+---
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## Repository Indexing Flow
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+```text
+Repository
+    ↓
+Fetch
+    ↓
+Filter Files
+    ↓
+Chunk Code
+    ↓
+Generate Embeddings
+    ↓
+Store in PostgreSQL
+    ↓
+Indexed
+```
 
-### Utilities
+---
 
-This Turborepo has some additional tools already setup for you:
+## RAG Workflow
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+```text
+Question
+    ↓
+Generate Query Embedding
+    ↓
+Vector Search
+    ↓
+Retrieve Relevant Chunks
+    ↓
+Construct Context
+    ↓
+LLM Response
+    ↓
+Answer + Source References
+```
+
+---
+
+## Project Structure
+
+```text
+codelens/
+├── apps/
+│   └── web/
+│
+├── packages/
+│   ├── ai/
+│   ├── db/
+│   ├── github/
+│   ├── code-parser/
+│   ├── types/
+│   ├── ui/
+│   └── config/
+│
+├── docker-compose.yml
+├── turbo.json
+├── pnpm-workspace.yaml
+└── README.md
+```
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the project root.
+
+```env
+DATABASE_URL=
+
+AUTH_SECRET=
+
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+OPENAI_API_KEY=
+
+INNGEST_EVENT_KEY=
+INNGEST_SIGNING_KEY=
+```
+
+---
+
+## Local Development
+
+### Install Dependencies
+
+```bash
+pnpm install
+```
+
+### Start PostgreSQL
+
+```bash
+docker compose up -d
+```
+
+### Run Development Server
+
+```bash
+pnpm dev
+```
+
+Application:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Docker Database
+
+The project uses PostgreSQL with pgvector.
+
+Start:
+
+```bash
+docker compose up -d
+```
+
+Stop:
+
+```bash
+docker compose down
+```
+
+Remove Data:
+
+```bash
+docker compose down -v
+```
+
+---
+
+## Available Scripts
+
+### Development
+
+```bash
+pnpm dev
+```
 
 ### Build
 
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+pnpm build
 ```
 
-Without global `turbo`, use your package manager:
+### Lint
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm exec turbo build
-pnpm exec turbo build
+```bash
+pnpm lint
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Format
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+```bash
+pnpm format
 ```
 
-Without global `turbo`:
+### Type Check
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+pnpm check-types
 ```
 
-### Develop
+### Database
 
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
+```bash
+pnpm db:generate
+pnpm db:migrate
+pnpm db:push
+pnpm db:studio
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+## Development Roadmap
+
+### Phase 1
+
+- [x] Turborepo
+- [x] Next.js
+- [x] Tailwind CSS
+
+### Phase 2
+
+- [ ] GitHub Authentication
+- [ ] Repository Selection
+
+### Phase 3
+
+- [ ] PostgreSQL
+- [ ] Drizzle ORM
+- [ ] pgvector
+
+### Phase 4
+
+- [ ] Repository Indexing
+- [ ] Chunking
+- [ ] Embeddings
+
+### Phase 5
+
+- [ ] RAG Chat
+
+### Phase 6
+
+- [ ] Repository Updates
+
+### Phase 7
+
+- [ ] Advanced Code Intelligence
+
+---
+
+## Security
+
+- GitHub tokens remain server-side.
+- Repository code is treated as private user data.
+- Secrets are stored in environment variables.
+- Authorization checks are enforced for repository access.
+- Vector search results are isolated per user.
+
+---
+
+## Vision
+
+CodeLens enables developers to:
+
+```text
+GitHub Login
+    ↓
+Select Repository
+    ↓
+Index Repository
+    ↓
+Ask Questions
+    ↓
+Get Grounded Answers
+    ↓
+View Source References
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+The goal is to make understanding large codebases as easy as having a conversation.
