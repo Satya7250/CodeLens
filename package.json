@@ -15,7 +15,12 @@
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
     "db:push": "turbo run db:push",
-    "db:studio": "turbo run db:studio"
+    "db:studio": "turbo run db:studio",
+
+    "db:start": "docker compose up -d",
+    "db:stop": "docker compose down",
+    "db:logs": "docker compose logs -f",
+    "db:restart": "docker compose restart"
   },
   "devDependencies": {
     "prettier": "3.9.6",
