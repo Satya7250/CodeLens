@@ -1,3 +1,7 @@
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+import { auth } from "@clerk/nextjs/server";
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  await auth.protect();
+
   return <>{children}</>;
 }

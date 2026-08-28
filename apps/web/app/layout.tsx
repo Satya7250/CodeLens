@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Outfit } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
@@ -33,14 +34,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={cn(outfit.variable, geistMono.variable)}>
       <body className="min-h-screen antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <QueryProvider>{children}</QueryProvider>
-        </ThemeProvider>
+        <ClerkProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <QueryProvider>{children}</QueryProvider>
+          </ThemeProvider>
+        </ClerkProvider>
       </body>
     </html>
   );
