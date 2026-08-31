@@ -8,8 +8,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   await auth.protect();
-
   await syncUser();
 
-  return <>{children}</>;
+  return children;
 }
