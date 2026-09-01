@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 
-import { NavMain } from "@/components/nav-main";
+import { NavMain } from "@/components/dashboard/nav-main";
 import {
   Sidebar,
   SidebarContent,
@@ -11,25 +12,26 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+
 import {
-  CommandIcon,
+  LayoutDashboardIcon,
   FolderGit2Icon,
   MessagesSquareIcon,
   Settings2Icon,
-  WorkflowIcon,
+  CommandIcon,
 } from "lucide-react";
 
 const data = {
   navMain: [
     {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: <LayoutDashboardIcon />,
+    },
+    {
       title: "Repositories",
       url: "/repositories",
       icon: <FolderGit2Icon />,
-    },
-    {
-      title: "Indexing",
-      url: "/repositories",
-      icon: <WorkflowIcon />,
     },
     {
       title: "Chat",
@@ -43,6 +45,7 @@ const data = {
     },
   ],
 };
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -50,15 +53,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
+              render={<Link href="/dashboard" />}
               className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<a href="/repositories" />}
             >
-              <CommandIcon className="size-5!" />
+              <CommandIcon className="size-5" />
               <span className="text-base font-semibold">CodeLens</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>

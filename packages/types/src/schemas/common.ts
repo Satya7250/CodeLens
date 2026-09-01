@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// Large datasets ko page-wise fetch karne ke liye pagination parameters validate karta hai.
 export const PaginationSchema = z
   .object({
     page: z.number().int().min(1).default(1),

@@ -1,9 +1,6 @@
-import { currentUser } from "@clerk/nextjs/server"; 
+import { currentUser } from "@clerk/nextjs/server";
 
-import {
-  createUser,
-  getUserByClerkId,
-} from "@repo/db";
+import { createUser, getUserByClerkId } from "@repo/db";
 
 export async function syncUser() {
   const clerkUser = await currentUser();
@@ -12,9 +9,7 @@ export async function syncUser() {
     throw new Error("Unauthorized");
   }
 
-  const existingUser = await getUserByClerkId(
-    clerkUser.id,
-  );
+  const existingUser = await getUserByClerkId(clerkUser.id);
 
   if (existingUser) {
     return existingUser;

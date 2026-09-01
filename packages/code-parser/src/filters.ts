@@ -14,18 +14,68 @@ const IGNORE_FILE_EXTENSIONS = new Set([
   "jpeg",
   "gif",
   "webp",
-  "svg",
   "ico",
   "pdf",
   "zip",
+  "tar",
+  "gz",
   "exe",
   "dll",
-  "mp4",
-  "mov",
+]);
+
+const ALLOWED_EXTENSIONS = new Set([
+  "ts",
+  "tsx",
+  "js",
+  "jsx",
+  "mjs",
+  "cjs",
+  "py",
+  "go",
+  "java",
+  "rs",
+  "md",
+  "json",
+  "yml",
+  "yaml",
 ]);
 
 function normalizePath(path: string): string {
-  return path.replace(/\\/g, "/").replace(/^\.\//, "").trim();
+  return path
+    .replace(/\\/g, "/")
+    .replace(/^\.?\//, "")
+    .trim();
+}
+
+export function shouldIndexFile(path: string): boolean {
+  const normalizedPath = normalizePath(path);
+
+  if (!normalizedPath || normalizedPath.endsWith("/")) {
+    return false;
+  }
+
+  const segments = normalizedPath
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => segment.toLowerCase());
+
+  if (segments.some((segment) => IGNORED_PATH_SEGMENTS.has(segment))) {
+    return false;
+  }
+
+  const fileName = segments[segments.length - 1] ?? "";
+
+  if (!fileName || fileName.startsWith(".")) {
+    return false;
+  }
+
+  const extension = fileName.includes(".") ? (fileName.split(".").at(-1)?.toLowerCase() ?? "") : "";
+
+  if (!extension || IGNORE_FILE_EXTENSIONS.has(extension)) {
+    return false;
+  }
+
+  return ALLOWED_EXTENSIONS.has(extension);
 }
 
 export function isIgnoredPath(path: string): boolean {
@@ -44,25 +94,7 @@ export function isIgnoredPath(path: string): boolean {
 }
 
 export function isIndexableFile(path: string): boolean {
-  const normalizedPath = normalizePath(path);
-
-  if (!normalizedPath || normalizedPath.endsWith("/")) {
-    return false;
-  }
-
-  if (isIgnoredPath(normalizedPath)) {
-    return false;
-  }
-
-  const fileName = normalizedPath.split("/").pop();
-
-  if (!fileName || fileName.length === 0) {
-    return false;
-  }
-
-  const extension = fileName.includes(".") ? fileName.split(".").pop()?.toLowerCase() ?? "" : "";
-
-  return extension.length > 0 ? !IGNORE_FILE_EXTENSIONS.has(extension) : true;
+  return shouldIndexFile(path);
 }
 
 export function filterRepositoryFiles(paths: string[]): string[] {
@@ -75,7 +107,7 @@ export function filterRepositoryFiles(paths: string[]): string[] {
       continue;
     }
 
-    if (isIndexableFile(normalizedPath)) {
+    if (shouldIndexFile(normalizedPath)) {
       uniquePaths.add(normalizedPath);
     }
   }

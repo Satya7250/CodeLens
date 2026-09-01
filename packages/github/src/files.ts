@@ -1,6 +1,13 @@
 import type { GitHubRepository as CodeLensGitHubRepository } from "@repo/types";
 
-import { createGitHubClient } from "./client.js";
+import { createGitHubClient } from "./client";
+
+export type GitHubTreeNode = {
+  path?: string;
+  type?: string;
+  sha?: string;
+  mode?: string;
+};
 
 export type GitHubTreeEntry = {
   path: string;
@@ -57,34 +64,7 @@ function toGitHubApiError(context: string, error: unknown): Error {
   return new Error(`${context}: Unknown GitHub API error.`);
 }
 
-function toCodeLensRepository(repo: {
-  id: number;
-  name: string;
-  full_name: string;
-  owner: { login: string } | null;
-  default_branch: string;
-  private: boolean;
-}): CodeLensGitHubRepository {
-  const ownerLogin = repo.owner?.login?.trim();
-
-  if (!repo.name.trim()) {
-    throw new Error("GitHub repository name is required.");
-  }
-
-  if (!ownerLogin) {
-    throw new Error(`GitHub repository owner is required for ${repo.name}.`);
-  }
-
-  return {
-    id: String(repo.id),
-    name: repo.name,
-    fullName: repo.full_name || `${ownerLogin}/${repo.name}`,
-    owner: ownerLogin,
-    defaultBranch: repo.default_branch || "main",
-    private: repo.private,
-  };
-}
-
+// Gets all files and folders from a GitHub repository branch.
 export async function getRepositoryTree(
   token: string,
   owner: string,
@@ -112,9 +92,11 @@ export async function getRepositoryTree(
       recursive: "true",
     });
 
-    const treeEntries = treeData.tree.filter(
-      (entry): entry is { path: string; type: string; sha: string; mode: string } =>
-        typeof entry.path === "string" && entry.path.length > 0,
+    const treeEntries = (treeData.tree as GitHubTreeNode[]).filter(
+      (
+        entry,
+      ): entry is Required<Pick<GitHubTreeNode, "path" | "type" | "sha" | "mode">> &
+        GitHubTreeNode => typeof entry.path === "string" && entry.path.length > 0,
     );
 
     return treeEntries.map((entry) => ({
@@ -131,6 +113,7 @@ export async function getRepositoryTree(
   }
 }
 
+// Fetches and returns the content of a file from a GitHub repository.
 export async function getRepositoryFileContent(
   token: string,
   owner: string,
@@ -171,5 +154,3 @@ export async function getRepositoryFileContent(
     );
   }
 }
-
-

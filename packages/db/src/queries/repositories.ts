@@ -1,11 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import { db } from "../index";
-import {
-  repositories,
-  type IndexStatus,
-  type RepositoryVisibility,
-} from "../schema";
+import { repositories, type IndexStatus, type RepositoryVisibility } from "../schema";
 
 export async function createRepository(data: {
   userId: string;
@@ -15,10 +11,7 @@ export async function createRepository(data: {
   defaultBranch: string;
   visibility: RepositoryVisibility;
 }) {
-  const [repository] = await db
-    .insert(repositories)
-    .values(data)
-    .returning();
+  const [repository] = await db.insert(repositories).values(data).returning();
 
   return repository;
 }
@@ -29,31 +22,20 @@ export async function getRepositoryById(id: string) {
   });
 }
 
-export async function getRepositoryByGithubId(
-  userId: string,
-  githubRepoId: bigint,
-) {
+export async function getRepositoryByGithubId(userId: string, githubRepoId: bigint) {
   return db.query.repositories.findFirst({
-    where: and(
-      eq(repositories.userId, userId),
-      eq(repositories.githubRepoId, githubRepoId),
-    ),
+    where: and(eq(repositories.userId, userId), eq(repositories.githubRepoId, githubRepoId)),
   });
 }
 
 export async function getUserRepositories(userId: string) {
   return db.query.repositories.findMany({
     where: eq(repositories.userId, userId),
-    orderBy: (repositories, { desc }) => [
-      desc(repositories.createdAt),
-    ],
+    orderBy: (repositories, { desc }) => [desc(repositories.createdAt)],
   });
 }
 
-export async function updateRepositoryIndexStatus(
-  repositoryId: string,
-  status: IndexStatus,
-) {
+export async function updateRepositoryIndexStatus(repositoryId: string, status: IndexStatus) {
   const [repository] = await db
     .update(repositories)
     .set({
@@ -66,10 +48,7 @@ export async function updateRepositoryIndexStatus(
   return repository;
 }
 
-export async function updateLastIndexedCommit(
-  repositoryId: string,
-  commitSha: string,
-) {
+export async function updateLastIndexedCommit(repositoryId: string, commitSha: string) {
   const [repository] = await db
     .update(repositories)
     .set({

@@ -38,6 +38,9 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.8)
+      '@repo/code-parser':
+        specifier: workspace:*
+        version: link:../../packages/code-parser
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
