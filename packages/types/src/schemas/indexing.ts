@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { RepositoryIndexStatusSchema } from "./repository.js";
+import { RepositoryIndexStatusSchema } from "./repository";
 
 export const IndexRepositoryRequestSchema = z
   .object({

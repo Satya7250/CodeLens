@@ -1,7 +1,8 @@
 import type { GitHubRepository as CodeLensGitHubRepository } from "@repo/types";
 
-import { createGitHubClient } from "./client.js";
+import { createGitHubClient } from "./client";
 
+// Converts a GitHub repository response into the CodeLens repository format.
 function toCodeLensRepository(repo: {
   id: number;
   name: string;
@@ -30,6 +31,7 @@ function toCodeLensRepository(repo: {
   };
 }
 
+// Converts GitHub API errors into readable application errors.
 function toGitHubApiError(context: string, error: unknown): Error {
   if (error instanceof Error) {
     return new Error(`${context}: ${error.message}`);
@@ -38,6 +40,7 @@ function toGitHubApiError(context: string, error: unknown): Error {
   return new Error(`${context}: Unknown GitHub API error.`);
 }
 
+// Fetches all repositories that belong to the authenticated GitHub user.
 export async function getUserRepositories(token: string): Promise<CodeLensGitHubRepository[]> {
   const github = createGitHubClient(token);
 
@@ -53,6 +56,7 @@ export async function getUserRepositories(token: string): Promise<CodeLensGitHub
   }
 }
 
+// Fetches details for a specific GitHub repository.
 export async function getRepository(
   token: string,
   owner: string,

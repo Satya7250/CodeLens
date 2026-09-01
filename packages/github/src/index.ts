@@ -1,6 +1,5 @@
-export * from "./client.js";
-export * from "./repositories.js";
-export {
-  getRepositoryFileContent,
-  getRepositoryTree,
-} from "./files.js";
+export * from "./client";
+export * from "./repositories";
+export * from "./commits";
+
+export { getRepositoryFileContent, getRepositoryTree } from "./files";

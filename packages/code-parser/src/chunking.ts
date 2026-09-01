@@ -1,3 +1,4 @@
+// Represents a piece of a file with line number information.
 export type FileChunk = {
   filePath: string;
   content: string;
@@ -5,15 +6,13 @@ export type FileChunk = {
   endLine: number;
 };
 
+// Converts all line endings to "\n" format.
 function normalizeLineBreaks(content: string): string {
   return content.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 }
 
-export function chunkFileContent(
-  content: string,
-  filePath: string,
-  chunkSize = 200,
-): FileChunk[] {
+// Splits a file into smaller chunks based on line count.
+export function chunkFileContent(content: string, filePath: string, chunkSize = 200): FileChunk[] {
   if (!Number.isInteger(chunkSize) || chunkSize <= 0) {
     throw new Error("chunkSize must be a positive integer.");
   }

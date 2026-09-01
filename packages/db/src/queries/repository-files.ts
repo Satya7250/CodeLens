@@ -10,10 +10,7 @@ export async function createRepositoryFile(data: {
   size: number;
   language?: string | null;
 }) {
-  const [file] = await db
-    .insert(repositoryFiles)
-    .values(data)
-    .returning();
+  const [file] = await db.insert(repositoryFiles).values(data).returning();
 
   return file;
 }
@@ -43,16 +40,11 @@ export async function getRepositoryFileById(id: string) {
 export async function getRepositoryFiles(repositoryId: string) {
   return db.query.repositoryFiles.findMany({
     where: eq(repositoryFiles.repositoryId, repositoryId),
-    orderBy: (repositoryFiles, { asc }) => [
-      asc(repositoryFiles.path),
-    ],
+    orderBy: (repositoryFiles, { asc }) => [asc(repositoryFiles.path)],
   });
 }
 
-export async function getRepositoryFileByPath(
-  repositoryId: string,
-  path: string,
-) {
+export async function getRepositoryFileByPath(repositoryId: string, path: string) {
   const files = await db.query.repositoryFiles.findMany({
     where: eq(repositoryFiles.repositoryId, repositoryId),
   });
@@ -81,17 +73,12 @@ export async function updateRepositoryFile(
 }
 
 export async function deleteRepositoryFile(fileId: string) {
-  const [file] = await db
-    .delete(repositoryFiles)
-    .where(eq(repositoryFiles.id, fileId))
-    .returning();
+  const [file] = await db.delete(repositoryFiles).where(eq(repositoryFiles.id, fileId)).returning();
 
   return file;
 }
 
-export async function deleteRepositoryFiles(
-  repositoryId: string,
-) {
+export async function deleteRepositoryFiles(repositoryId: string) {
   return db
     .delete(repositoryFiles)
     .where(eq(repositoryFiles.repositoryId, repositoryId))

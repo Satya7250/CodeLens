@@ -7,13 +7,15 @@ import { UserButton } from "@clerk/nextjs";
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const title = pathname.startsWith("/repositories")
-    ? "Repositories"
-    : pathname.startsWith("/chat")
-      ? "Chat"
-      : pathname.startsWith("/settings")
-        ? "Settings"
-        : "CodeLens";
+  const title = pathname.startsWith("/dashboard")
+    ? "Dashboard"
+    : pathname.startsWith("/repositories")
+      ? "Repositories"
+      : pathname.startsWith("/chat")
+        ? "Chat"
+        : pathname.startsWith("/settings")
+          ? "Settings"
+          : "CodeLens";
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">

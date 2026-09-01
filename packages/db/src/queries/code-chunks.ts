@@ -12,10 +12,7 @@ export async function createCodeChunk(data: {
   endLine: number;
   embedding: number[];
 }) {
-  const [chunk] = await db
-    .insert(codeChunks)
-    .values(data)
-    .returning();
+  const [chunk] = await db.insert(codeChunks).values(data).returning();
 
   return chunk;
 }
@@ -44,48 +41,29 @@ export async function getCodeChunkById(id: string) {
   });
 }
 
-export async function getChunksByRepository(
-  repositoryId: string,
-) {
+export async function getChunksByRepository(repositoryId: string) {
   return db.query.codeChunks.findMany({
     where: eq(codeChunks.repositoryId, repositoryId),
   });
 }
 
-export async function getChunksByFile(
-  fileId: string,
-) {
+export async function getChunksByFile(fileId: string) {
   return db.query.codeChunks.findMany({
     where: eq(codeChunks.fileId, fileId),
-    orderBy: (table, { asc }) => [
-      asc(table.startLine),
-    ],
+    orderBy: (table, { asc }) => [asc(table.startLine)],
   });
 }
 
 export async function deleteCodeChunk(id: string) {
-  const [chunk] = await db
-    .delete(codeChunks)
-    .where(eq(codeChunks.id, id))
-    .returning();
+  const [chunk] = await db.delete(codeChunks).where(eq(codeChunks.id, id)).returning();
 
   return chunk;
 }
 
-export async function deleteChunksByFile(
-  fileId: string,
-) {
-  return db
-    .delete(codeChunks)
-    .where(eq(codeChunks.fileId, fileId))
-    .returning();
+export async function deleteChunksByFile(fileId: string) {
+  return db.delete(codeChunks).where(eq(codeChunks.fileId, fileId)).returning();
 }
 
-export async function deleteChunksByRepository(
-  repositoryId: string,
-) {
-  return db
-    .delete(codeChunks)
-    .where(eq(codeChunks.repositoryId, repositoryId))
-    .returning();
+export async function deleteChunksByRepository(repositoryId: string) {
+  return db.delete(codeChunks).where(eq(codeChunks.repositoryId, repositoryId)).returning();
 }

@@ -15,10 +15,7 @@ export async function getUserByClerkId(clerkId: string) {
   });
 }
 
-export async function createUser(data: {
-  clerkId: string;
-  email: string;
-}) {
+export async function createUser(data: { clerkId: string; email: string }) {
   const [user] = await db
     .insert(users)
     .values({
@@ -49,10 +46,7 @@ export async function updateUser(
 }
 
 export async function deleteUser(id: string) {
-  const [user] = await db
-    .delete(users)
-    .where(eq(users.id, id))
-    .returning();
+  const [user] = await db.delete(users).where(eq(users.id, id)).returning();
 
   return user;
 }

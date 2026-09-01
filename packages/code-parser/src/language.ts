@@ -1,3 +1,4 @@
+// Maps file extensions to programming languages.
 const LANGUAGE_BY_EXTENSION: Record<string, string> = {
   ts: "typescript",
   tsx: "tsx",
@@ -18,6 +19,7 @@ const LANGUAGE_BY_EXTENSION: Record<string, string> = {
   yaml: "yaml",
 };
 
+// Detects the language of a file based on its extension.
 export function detectLanguage(path: string): string | null {
   const normalizedPath = path.replace(/\\/g, "/").trim();
 

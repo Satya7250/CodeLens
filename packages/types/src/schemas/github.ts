@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// Validates GitHub repository information returned from the GitHub API.
 export const GitHubRepositorySchema = z
   .object({
     id: z.string().trim().min(1),

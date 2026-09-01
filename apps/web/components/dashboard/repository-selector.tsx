@@ -92,7 +92,9 @@ export function RepositorySelector() {
     },
   });
 
-  const savedRepoIds = new Set((savedReposQuery.data ?? []).map((repo) => String(repo.githubRepoId)));
+  const savedRepoIds = new Set(
+    (savedReposQuery.data ?? []).map((repo) => String(repo.githubRepoId)),
+  );
 
   const repositories = githubReposQuery.data ?? [];
 
@@ -108,7 +110,9 @@ export function RepositorySelector() {
         ) : null}
 
         {githubReposQuery.isError ? (
-          <div className="text-sm text-destructive">{githubReposQuery.error?.message ?? "Failed to load repositories."}</div>
+          <div className="text-sm text-destructive">
+            {githubReposQuery.error?.message ?? "Failed to load repositories."}
+          </div>
         ) : null}
 
         {!githubReposQuery.isLoading && !githubReposQuery.isError && repositories.length === 0 ? (
@@ -125,7 +129,9 @@ export function RepositorySelector() {
                 className="flex items-center justify-between rounded-xl border p-3 transition-colors hover:bg-muted/50"
               >
                 <div>
-                  <div className="font-medium">{repository.owner}/{repository.name}</div>
+                  <div className="font-medium">
+                    {repository.owner}/{repository.name}
+                  </div>
                   <div className="text-sm text-muted-foreground">
                     {repository.defaultBranch} · {repository.indexStatus}
                   </div>
@@ -154,9 +160,7 @@ export function RepositorySelector() {
                       {repository.private ? "Private" : "Public"}
                     </Badge>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {repository.defaultBranch}
-                  </div>
+                  <div className="text-sm text-muted-foreground">{repository.defaultBranch}</div>
                 </div>
 
                 <Button
