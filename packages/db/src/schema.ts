@@ -164,7 +164,7 @@ export const codeChunks = pgTable(
 
     endLine: integer("end_line").notNull(),
 
-    embedding: vector("embedding").notNull(),
+    embedding: vector("embedding"),
 
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 

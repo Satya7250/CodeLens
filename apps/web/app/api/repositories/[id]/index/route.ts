@@ -1,18 +1,29 @@
 import { auth } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { startIndexing } from "@/lib/indexing/start-indexing";
+import { syncUser } from "@/lib/auth/sync-user";
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const { userId: clerkUserId } = await auth();
+
+    if (!clerkUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await syncUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
-    const stats = await startIndexing(id, userId);
+    const stats = await startIndexing(id, user.id, clerkUserId);
+
+    // Invalidate the repository detail page cache so it re-fetches fresh data
+    revalidatePath(`/repository/${id}`);
 
     return NextResponse.json({
       success: true,

@@ -2,10 +2,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 
 export function RepositoryIndexButton({ repositoryId }: { repositoryId: string }) {
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [stats, setStats] = useState<{ filesIndexed: number; chunksCreated: number } | null>(null);
@@ -42,6 +44,11 @@ export function RepositoryIndexButton({ repositoryId }: { repositoryId: string }
         chunksCreated: payload.chunksCreated ?? 0,
       });
       setIsSuccess(true);
+
+      // Refresh the page to fetch updated repository status from database
+      setTimeout(() => {
+        router.refresh();
+      }, 500);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to start indexing.";
       console.error(message);

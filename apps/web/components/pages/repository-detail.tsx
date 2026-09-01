@@ -107,8 +107,29 @@ export async function RepositoryDetailPage({ params }: { params: Promise<{ id: s
           <CardTitle className="text-lg font-medium text-foreground">{lastIndexedLabel}</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Repository data is stored and associated with the authenticated user. Indexing is prepared
-          but not yet executing a live GitHub sync.
+          {repository.indexStatus === "INDEXED" && repository.lastIndexedAt && (
+            <>
+              ✓ Repository was successfully indexed on {repository.lastIndexedAt.toLocaleDateString()} at{" "}
+              {repository.lastIndexedAt.toLocaleTimeString()}. Files and code chunks are ready for
+              semantic search and analysis.
+            </>
+          )}
+          {repository.indexStatus === "INDEXING" && (
+            <>
+              ⏳ Indexing is currently in progress. Repository files and code chunks are being processed...
+            </>
+          )}
+          {repository.indexStatus === "PENDING" && (
+            <>
+              → Repository is ready to be indexed. Click the "Index Repository" button to start processing
+              files and creating code chunks.
+            </>
+          )}
+          {repository.indexStatus === "FAILED" && (
+            <>
+              ✗ The last indexing attempt failed. Please try again or check the repository settings.
+            </>
+          )}
         </CardContent>
       </Card>
 

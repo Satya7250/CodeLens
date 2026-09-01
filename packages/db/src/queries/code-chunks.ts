@@ -10,7 +10,7 @@ export async function createCodeChunk(data: {
   content: string;
   startLine: number;
   endLine: number;
-  embedding: number[];
+  embedding?: number[] | null;
 }) {
   const [chunk] = await db.insert(codeChunks).values(data).returning();
 
@@ -25,7 +25,7 @@ export async function createCodeChunks(
     content: string;
     startLine: number;
     endLine: number;
-    embedding: number[];
+    embedding?: number[] | null;
   }[],
 ) {
   if (chunks.length === 0) {

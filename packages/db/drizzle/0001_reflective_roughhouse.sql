@@ -1,0 +1,1 @@
+ALTER TABLE "code_chunks" ALTER COLUMN "embedding" DROP NOT NULL;
