@@ -38,6 +38,10 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ error: message }, { status: 404 });
     }
 
+    if (message === "Repository indexing is already in progress.") {
+      return NextResponse.json({ error: message }, { status: 409 });
+    }
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

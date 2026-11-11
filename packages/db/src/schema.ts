@@ -38,7 +38,12 @@ const vector = customType<{ data: number[]; driverData: string }>({
 /* -------------------------------------------------------------------------
  * Enums
  * ---------------------------------------------------------------------- */
-export const indexStatusEnum = pgEnum("index_status", ["PENDING", "INDEXING", "INDEXED", "FAILED"]);
+export const indexStatusEnum = pgEnum("index_status", [
+  "PENDING",
+  "INDEXING",
+  "COMPLETED",
+  "FAILED",
+]);
 
 export const repositoryVisibilityEnum = pgEnum("repository_visibility", [
   "public",

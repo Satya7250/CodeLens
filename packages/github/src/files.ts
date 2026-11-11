@@ -71,6 +71,17 @@ export async function getRepositoryTree(
   repo: string,
   branch: string,
 ): Promise<GitHubTreeEntry[]> {
+  const { entries } = await getRepositoryTreeWithCommit(token, owner, repo, branch);
+
+  return entries;
+}
+
+export async function getRepositoryTreeWithCommit(
+  token: string,
+  owner: string,
+  repo: string,
+  branch: string,
+): Promise<{ entries: GitHubTreeEntry[]; commitSha?: string }> {
   const github = createGitHubClient(token);
   const repositoryOwner = normalizeRepositoryOwner(owner);
   const repositoryName = normalizeRepositoryName(repo);
@@ -83,7 +94,8 @@ export async function getRepositoryTree(
       branch: branchName,
     });
 
-    const treeSha = branchData.commit?.sha ?? branchName;
+    const commitSha = branchData.commit?.sha;
+    const treeSha = commitSha ?? branchName;
 
     const { data: treeData } = await github.git.getTree({
       owner: repositoryOwner,
@@ -99,12 +111,15 @@ export async function getRepositoryTree(
         GitHubTreeNode => typeof entry.path === "string" && entry.path.length > 0,
     );
 
-    return treeEntries.map((entry) => ({
-      path: entry.path,
-      type: (entry.type as GitHubTreeEntry["type"]) ?? "blob",
-      sha: entry.sha ?? "",
-      mode: entry.mode ?? "100644",
-    }));
+    return {
+      entries: treeEntries.map((entry) => ({
+        path: entry.path,
+        type: (entry.type as GitHubTreeEntry["type"]) ?? "blob",
+        sha: entry.sha ?? "",
+        mode: entry.mode ?? "100644",
+      })),
+      commitSha,
+    };
   } catch (error) {
     throw toGitHubApiError(
       `Unable to fetch the repository tree for ${repositoryOwner}/${repositoryName} on ${branchName}`,

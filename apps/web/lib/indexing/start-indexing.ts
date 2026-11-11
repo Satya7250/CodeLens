@@ -1,16 +1,15 @@
 import { clerkClient } from "@clerk/nextjs/server";
 
 import { chunkFile, shouldIndexFile } from "@repo/code-parser";
-import { getRepositoryFileContent, getRepositoryTree } from "@repo/github";
+import { getRepositoryFileContent, getRepositoryTreeWithCommit } from "@repo/github";
 import {
   createRepositoryFiles,
   createCodeChunks,
   deleteRepositoryFiles,
   deleteChunksByRepository,
-} from "@repo/db";
-import {
+  acquireRepositoryIndexLock,
   updateRepositoryIndexStatus,
-  updateLastIndexedCommit,
+  completeRepositoryIndexing,
 } from "@repo/db";
 
 import { getRepositoryForUser } from "@/lib/repositories/get-repository";
@@ -49,16 +48,25 @@ export async function startIndexing(
   databaseUserId: string,
   clerkUserId: string,
 ): Promise<RepositoryIndexingStats> {
-  const repository = await getRepositoryForUser(repositoryId, databaseUserId);
-
-  if (!repository) {
-    throw new Error("Repository not found");
-  }
-
-  // Update status to INDEXING
-  await updateRepositoryIndexStatus(repositoryId, "INDEXING");
+  let releaseLock: (() => Promise<void>) | null = null;
+  let indexingStarted = false;
 
   try {
+    const repository = await getRepositoryForUser(repositoryId, databaseUserId);
+
+    if (!repository) {
+      throw new Error("Repository not found");
+    }
+
+    releaseLock = await acquireRepositoryIndexLock(repositoryId);
+
+    if (!releaseLock) {
+      throw new Error("Repository indexing is already in progress.");
+    }
+
+    indexingStarted = true;
+    await updateRepositoryIndexStatus(repositoryId, databaseUserId, "INDEXING");
+
     const client = await clerkClient();
     const oauthTokens = await client.users.getUserOauthAccessToken(clerkUserId, "github");
 
@@ -72,15 +80,12 @@ export async function startIndexing(
       throw new Error("GitHub access token could not be retrieved.");
     }
 
-    const tree = await getRepositoryTree(
+    const { entries: tree, commitSha } = await getRepositoryTreeWithCommit(
       githubToken,
       repository.owner,
       repository.name,
       repository.defaultBranch,
     );
-
-    // Get the current commit SHA from the branch
-    const treeCommitSha = tree[0]?.sha || repository.defaultBranch;
 
     // Clear old data
     await deleteChunksByRepository(repositoryId);
@@ -158,8 +163,7 @@ export async function startIndexing(
     await createCodeChunks(chunksToCreate);
 
     // Step 3: Update repository status
-    await updateRepositoryIndexStatus(repositoryId, "INDEXED");
-    await updateLastIndexedCommit(repositoryId, treeCommitSha);
+    await completeRepositoryIndexing(repositoryId, databaseUserId, commitSha);
 
     return {
       filesScanned: candidateEntries.length,
@@ -167,8 +171,22 @@ export async function startIndexing(
       chunksCreated: chunksToCreate.length,
     };
   } catch (error) {
-    // Update status to FAILED on error
-    await updateRepositoryIndexStatus(repositoryId, "FAILED");
+    if (indexingStarted) {
+      try {
+        await updateRepositoryIndexStatus(repositoryId, databaseUserId, "FAILED");
+      } catch (statusError) {
+        console.error("Unable to persist FAILED indexing status:", statusError);
+      }
+    }
+
     throw error;
+  } finally {
+    if (releaseLock) {
+      try {
+        await releaseLock();
+      } catch (releaseError) {
+        console.error("Unable to release repository indexing lock:", releaseError);
+      }
+    }
   }
 }

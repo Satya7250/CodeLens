@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const RepositoryVisibilitySchema = z.enum(["public", "private", "internal"]);
 
-export const RepositoryIndexStatusSchema = z.enum(["PENDING", "INDEXING", "INDEXED", "FAILED"]);
+export const RepositoryIndexStatusSchema = z.enum(["PENDING", "INDEXING", "COMPLETED", "FAILED"]);
 
 export const RepositorySchema = z
   .object({

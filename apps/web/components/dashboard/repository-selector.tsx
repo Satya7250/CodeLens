@@ -25,7 +25,7 @@ type SavedRepository = {
   name: string;
   defaultBranch: string;
   visibility: "public" | "private" | "internal";
-  indexStatus: "PENDING" | "INDEXING" | "INDEXED" | "FAILED";
+  indexStatus: "PENDING" | "INDEXING" | "COMPLETED" | "FAILED";
 };
 
 async function fetchGitHubRepositories() {

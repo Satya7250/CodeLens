@@ -90,7 +90,7 @@ export async function RepositoryDetailPage({ params }: { params: Promise<{ id: s
               Index status
             </CardDescription>
             <CardTitle className="text-xl">
-              <Badge variant={repository.indexStatus === "INDEXED" ? "default" : "secondary"}>
+              <Badge variant={repository.indexStatus === "COMPLETED" ? "default" : "secondary"}>
                 {repository.indexStatus}
               </Badge>
             </CardTitle>
@@ -107,22 +107,24 @@ export async function RepositoryDetailPage({ params }: { params: Promise<{ id: s
           <CardTitle className="text-lg font-medium text-foreground">{lastIndexedLabel}</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          {repository.indexStatus === "INDEXED" && repository.lastIndexedAt && (
+          {repository.indexStatus === "COMPLETED" && repository.lastIndexedAt && (
             <>
-              ✓ Repository was successfully indexed on {repository.lastIndexedAt.toLocaleDateString()} at{" "}
+              ✓ Repository was successfully indexed on{" "}
+              {repository.lastIndexedAt.toLocaleDateString()} at{" "}
               {repository.lastIndexedAt.toLocaleTimeString()}. Files and code chunks are ready for
               semantic search and analysis.
             </>
           )}
           {repository.indexStatus === "INDEXING" && (
             <>
-              ⏳ Indexing is currently in progress. Repository files and code chunks are being processed...
+              ⏳ Indexing is currently in progress. Repository files and code chunks are being
+              processed...
             </>
           )}
           {repository.indexStatus === "PENDING" && (
             <>
-              → Repository is ready to be indexed. Click the "Index Repository" button to start processing
-              files and creating code chunks.
+              → Repository is ready to be indexed. Click the "Index Repository" button to start
+              processing files and creating code chunks.
             </>
           )}
           {repository.indexStatus === "FAILED" && (

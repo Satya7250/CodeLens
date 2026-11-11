@@ -10,11 +10,17 @@ export function RepositoryIndexButton({ repositoryId }: { repositoryId: string }
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [stats, setStats] = useState<{ filesIndexed: number; chunksCreated: number } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [stats, setStats] = useState<{
+    filesScanned: number;
+    filesIndexed: number;
+    chunksCreated: number;
+  } | null>(null);
 
   const handleIndex = async () => {
     setIsPending(true);
     setIsSuccess(false);
+    setErrorMessage(null);
 
     try {
       const response = await fetch(`/api/repositories/${repositoryId}/index`, {
@@ -31,6 +37,7 @@ export function RepositoryIndexButton({ repositoryId }: { repositoryId: string }
 
       const payload = (await response.json().catch(() => null)) as {
         success?: boolean;
+        filesScanned?: number;
         filesIndexed?: number;
         chunksCreated?: number;
       } | null;
@@ -40,6 +47,7 @@ export function RepositoryIndexButton({ repositoryId }: { repositoryId: string }
       }
 
       setStats({
+        filesScanned: payload.filesScanned ?? 0,
         filesIndexed: payload.filesIndexed ?? 0,
         chunksCreated: payload.chunksCreated ?? 0,
       });
@@ -51,8 +59,9 @@ export function RepositoryIndexButton({ repositoryId }: { repositoryId: string }
       }, 500);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to start indexing.";
-      console.error(message);
+      setErrorMessage(message);
       setStats(null);
+      router.refresh();
     } finally {
       setIsPending(false);
     }
@@ -61,19 +70,26 @@ export function RepositoryIndexButton({ repositoryId }: { repositoryId: string }
   const label = isPending
     ? "Indexing..."
     : isSuccess && stats
-      ? `Indexed ${stats.filesIndexed} files\n${stats.chunksCreated} chunks created`
+      ? `${stats.filesScanned} files scanned\n${stats.filesIndexed} files indexed\n${stats.chunksCreated} chunks created`
       : isSuccess
         ? "Indexed"
         : "Index Repository";
 
   return (
-    <Button
-      size="lg"
-      onClick={handleIndex}
-      disabled={isPending}
-      className="whitespace-pre-line text-left"
-    >
-      {label}
-    </Button>
+    <div className="space-y-2">
+      <Button
+        size="lg"
+        onClick={handleIndex}
+        disabled={isPending}
+        className="whitespace-pre-line text-left"
+      >
+        {label}
+      </Button>
+      {errorMessage ? (
+        <p role="alert" className="max-w-sm text-sm text-destructive">
+          {errorMessage}
+        </p>
+      ) : null}
+    </div>
   );
 }

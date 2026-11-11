@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 
+import { client } from "../client";
 import { db } from "../index";
 import { repositories, type IndexStatus, type RepositoryVisibility } from "../schema";
 
@@ -11,7 +12,13 @@ export async function createRepository(data: {
   defaultBranch: string;
   visibility: RepositoryVisibility;
 }) {
-  const [repository] = await db.insert(repositories).values(data).returning();
+  const [repository] = await db
+    .insert(repositories)
+    .values({
+      ...data,
+      indexStatus: "PENDING",
+    })
+    .returning();
 
   return repository;
 }
@@ -35,29 +42,76 @@ export async function getUserRepositories(userId: string) {
   });
 }
 
-export async function updateRepositoryIndexStatus(repositoryId: string, status: IndexStatus) {
+export async function updateRepositoryIndexStatus(
+  repositoryId: string,
+  userId: string,
+  status: IndexStatus,
+) {
   const [repository] = await db
     .update(repositories)
     .set({
       indexStatus: status,
       updatedAt: new Date(),
     })
-    .where(eq(repositories.id, repositoryId))
+    .where(and(eq(repositories.id, repositoryId), eq(repositories.userId, userId)))
     .returning();
+
+  if (!repository) {
+    throw new Error("Repository not found");
+  }
 
   return repository;
 }
 
-export async function updateLastIndexedCommit(repositoryId: string, commitSha: string) {
+export async function acquireRepositoryIndexLock(
+  repositoryId: string,
+): Promise<(() => Promise<void>) | null> {
+  const connection = await client.reserve();
+
+  try {
+    const [{ locked }] = await connection<[{ locked: boolean }]>`
+      SELECT pg_try_advisory_lock(hashtextextended(${repositoryId}, 0)) AS locked
+    `;
+
+    if (!locked) {
+      connection.release();
+      return null;
+    }
+
+    return async () => {
+      try {
+        await connection`
+          SELECT pg_advisory_unlock(hashtextextended(${repositoryId}, 0))
+        `;
+      } finally {
+        connection.release();
+      }
+    };
+  } catch (error) {
+    connection.release();
+    throw error;
+  }
+}
+
+export async function completeRepositoryIndexing(
+  repositoryId: string,
+  userId: string,
+  commitSha?: string,
+) {
   const [repository] = await db
     .update(repositories)
     .set({
-      lastIndexedCommit: commitSha,
+      indexStatus: "COMPLETED",
+      ...(commitSha ? { lastIndexedCommit: commitSha } : {}),
       lastIndexedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(repositories.id, repositoryId))
+    .where(and(eq(repositories.id, repositoryId), eq(repositories.userId, userId)))
     .returning();
+
+  if (!repository) {
+    throw new Error("Repository not found");
+  }
 
   return repository;
 }

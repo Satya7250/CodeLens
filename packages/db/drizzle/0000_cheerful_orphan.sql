@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS vector;--> statement-breakpoint
 CREATE TYPE "public"."index_status" AS ENUM('PENDING', 'INDEXING', 'INDEXED', 'FAILED');--> statement-breakpoint
 CREATE TYPE "public"."repository_visibility" AS ENUM('public', 'private', 'internal');--> statement-breakpoint
 CREATE TABLE "code_chunks" (
