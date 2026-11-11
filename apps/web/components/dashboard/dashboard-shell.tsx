@@ -8,15 +8,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 64)",
-          "--header-height": "calc(var(--spacing) * 12)",
+          "--header-height": "calc(var(--spacing) * 14)",
         } as React.CSSProperties
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="overflow-x-hidden">
         <SiteHeader />
         <main className="flex flex-1 flex-col">
-          <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 lg:p-6">
+          <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-3.5 sm:p-5 lg:p-8">
             {children}
           </div>
         </main>

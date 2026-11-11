@@ -10,8 +10,10 @@ import {
   acquireRepositoryIndexLock,
   updateRepositoryIndexStatus,
   completeRepositoryIndexing,
+  getRepositoryChunkEmbeddingStats,
 } from "@repo/db";
 
+import { generateEmbeddings } from "@/lib/embeddings/openrouter";
 import { getRepositoryForUser } from "@/lib/repositories/get-repository";
 
 export type RepositoryIndexingStats = {
@@ -87,14 +89,10 @@ export async function startIndexing(
       repository.defaultBranch,
     );
 
-    // Clear old data
-    await deleteChunksByRepository(repositoryId);
-    await deleteRepositoryFiles(repositoryId);
-
     const candidateEntries = tree.filter((entry) => entry.type === "blob");
     const indexableEntries = candidateEntries.filter((entry) => shouldIndexFile(entry.path));
 
-    // Step 1: Create repository_files entries and fetch content
+    // Step 1: Fetch supported file contents
     const filesToIndex: Array<{
       path: string;
       sha: string;
@@ -120,7 +118,42 @@ export async function startIndexing(
       }
     }
 
-    // Batch create repository files
+    // Step 2: Create chunks and embeddings before replacing the current index.
+    const chunksToEmbed: Array<{
+      repositoryId: string;
+      filePath: string;
+      content: string;
+      startLine: number;
+      endLine: number;
+    }> = [];
+
+    for (const file of filesToIndex) {
+      const chunks = chunkFile(file.content, file.path);
+
+      for (const chunk of chunks) {
+        chunksToEmbed.push({
+          repositoryId,
+          filePath: file.path,
+          content: chunk.content,
+          startLine: chunk.startLine,
+          endLine: chunk.endLine,
+        });
+      }
+    }
+
+    const embeddings = await generateEmbeddings(chunksToEmbed.map((chunk) => chunk.content));
+    const chunksWithEmbeddings = chunksToEmbed.map((chunk, index) => {
+      const embedding = embeddings[index];
+      if (!embedding) {
+        throw new Error(`Embedding generation returned no result for chunk ${index + 1}.`);
+      }
+      return { ...chunk, embedding };
+    });
+
+    // Replace the previous index only after fetching and embedding the new content succeeds.
+    await deleteChunksByRepository(repositoryId);
+    await deleteRepositoryFiles(repositoryId);
+
     const fileRecords = await createRepositoryFiles(
       filesToIndex.map((file) => ({
         repositoryId,
@@ -130,37 +163,27 @@ export async function startIndexing(
         language: file.language,
       })),
     );
-
-    // Step 2: Create code chunks
-    const chunksToCreate: Array<{
-      repositoryId: string;
-      fileId: string;
-      filePath: string;
-      content: string;
-      startLine: number;
-      endLine: number;
-    }> = [];
-
-    for (const file of fileRecords) {
-      const fileIndex = filesToIndex.findIndex((f) => f.path === file.path);
-      if (fileIndex !== -1) {
-        const chunks = chunkFile(filesToIndex[fileIndex]!.content, file.path);
-
-        for (const chunk of chunks) {
-          chunksToCreate.push({
-            repositoryId,
-            fileId: file.id,
-            filePath: file.path,
-            content: chunk.content,
-            startLine: chunk.startLine,
-            endLine: chunk.endLine,
-          });
-        }
+    const fileIdByPath = new Map(fileRecords.map((file) => [file.path, file.id]));
+    const chunksToCreate = chunksWithEmbeddings.map((chunk) => {
+      const fileId = fileIdByPath.get(chunk.filePath);
+      if (!fileId) {
+        throw new Error(`Unable to find the stored repository file for ${chunk.filePath}.`);
       }
-    }
+      return { ...chunk, fileId };
+    });
 
-    // Batch create chunks
     await createCodeChunks(chunksToCreate);
+
+    const embeddingStats = await getRepositoryChunkEmbeddingStats(repositoryId);
+    if (
+      embeddingStats.totalChunks !== chunksToCreate.length ||
+      embeddingStats.missingEmbeddings !== 0 ||
+      embeddingStats.invalidDimensions !== 0
+    ) {
+      throw new Error(
+        `Index validation failed for repository ${repositoryId}: expected ${chunksToCreate.length} chunks with valid 1536-dimensional embeddings, found ${embeddingStats.totalChunks} chunks, ${embeddingStats.missingEmbeddings} missing embeddings, and ${embeddingStats.invalidDimensions} invalid dimensions.`,
+      );
+    }
 
     // Step 3: Update repository status
     await completeRepositoryIndexing(repositoryId, databaseUserId, commitSha);

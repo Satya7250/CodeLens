@@ -1,6 +1,7 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
+  "globalPassThroughEnv": ["OPENROUTER_API_KEY", "OPENROUTER_CHAT_MODEL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

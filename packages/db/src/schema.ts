@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   bigint,
   foreignKey,
@@ -179,6 +179,10 @@ export const codeChunks = pgTable(
     index("code_chunks_repository_id_idx").on(table.repositoryId),
     index("code_chunks_file_id_idx").on(table.fileId),
     index("code_chunks_embedding_hnsw_idx").using("hnsw", table.embedding.op("vector_cosine_ops")),
+    index("code_chunks_search_gin_idx").using(
+      "gin",
+      sql`to_tsvector('simple', regexp_replace(${table.filePath}, '[/._-]+', ' ', 'g') || ' ' || ${table.content})`,
+    ),
     foreignKey({
       columns: [table.repositoryId, table.fileId],
       foreignColumns: [repositoryFiles.repositoryId, repositoryFiles.id],

@@ -5,13 +5,16 @@ function normalizeLineBreaks(content: string): string {
 }
 
 export function chunkFile(content: string, filePath: string): CodeChunk[] {
-  const normalizedContent = normalizeLineBreaks(content).trim();
+  const normalizedContent = normalizeLineBreaks(content);
 
-  if (!normalizedContent) {
+  if (!normalizedContent.trim()) {
     return [];
   }
 
   const lines = normalizedContent.split("\n");
+  while (lines.at(-1) === "") {
+    lines.pop();
+  }
   const chunkSize = 120;
   const chunks: CodeChunk[] = [];
 
