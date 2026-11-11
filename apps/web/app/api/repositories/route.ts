@@ -5,6 +5,7 @@ import { RepositoryCreateSchema } from "@repo/types";
 import { syncUser } from "@/lib/auth/sync-user";
 import { getSavedRepositoriesForUser } from "@/lib/repositories/get-user-repositories";
 import { saveRepositoryForUser } from "@/lib/repositories/create-repository";
+import { serializeRepositories, serializeRepository } from "@/lib/repositories/serialize";
 
 export async function GET() {
   const { userId } = await auth();
@@ -22,7 +23,7 @@ export async function GET() {
 
     const repositories = await getSavedRepositoriesForUser(dbUser.id);
 
-    return NextResponse.json(repositories);
+    return NextResponse.json(serializeRepositories(repositories));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to fetch saved repositories";
 
@@ -56,7 +57,11 @@ export async function POST(request: Request) {
 
     const repository = await saveRepositoryForUser(dbUser.id, parsedBody.data);
 
-    return NextResponse.json(repository, { status: 201 });
+    if (!repository) {
+      return NextResponse.json({ error: "Unable to save repository" }, { status: 500 });
+    }
+
+    return NextResponse.json(serializeRepository(repository), { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to save repository";
 

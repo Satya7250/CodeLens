@@ -1,0 +1,1 @@
+CREATE INDEX "code_chunks_search_gin_idx" ON "code_chunks" USING gin (to_tsvector('simple', regexp_replace("file_path", '[/._-]+', ' ', 'g') || ' ' || "content"));
