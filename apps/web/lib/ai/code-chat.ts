@@ -2,7 +2,7 @@ import "server-only";
 
 import type { ChatMessage } from "@repo/types";
 
-import { hybridSearch, SemanticSearchProviderError } from "@/lib/search/semantic-search";
+import { hybridSearchWithMode } from "@/lib/search/semantic-search";
 import {
   generateChatCompletion,
   OpenRouterChatError,
@@ -57,7 +57,9 @@ function fitContentToBudget(content: string, maximumLength: number): string {
   return lastLineBreak > 0 ? truncated.slice(0, lastLineBreak) : truncated;
 }
 
-function buildRepositoryContext(chunks: Awaited<ReturnType<typeof hybridSearch>>): {
+function buildRepositoryContext(
+  chunks: Awaited<ReturnType<typeof hybridSearchWithMode>>["chunks"],
+): {
   context: string;
   sources: Array<{
     chunkId: string;
@@ -178,23 +180,19 @@ export async function generateCodeAnswer(
   question: string,
   history: ChatMessage[] = [],
 ) {
-  let chunks;
-  try {
-    chunks = await hybridSearch(repositoryId, databaseUserId, question, RETRIEVAL_LIMIT);
-  } catch (error) {
-    if (error instanceof SemanticSearchProviderError) {
-      throw new OpenRouterChatError(
-        "Unable to retrieve code context right now. Please try again later.",
-      );
-    }
-    throw error;
-  }
+  const { chunks, searchMode } = await hybridSearchWithMode(
+    repositoryId,
+    databaseUserId,
+    question,
+    RETRIEVAL_LIMIT,
+  );
 
   if (chunks.length === 0) {
     return {
       answer:
-        "There is not enough indexed code with embeddings in this repository to answer reliably. Index the repository and try again.",
+        "There is not enough matching indexed code in this repository to answer reliably. Index the repository and try again.",
       sources: [],
+      searchMode,
     };
   }
 
@@ -210,7 +208,7 @@ export async function generateCodeAnswer(
   ];
 
   const answer = await generateChatCompletion(messages);
-  return validateCitations(answer, sources);
+  return { ...validateCitations(answer, sources), searchMode };
 }
 
 export { OpenRouterChatError };

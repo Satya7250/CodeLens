@@ -71,6 +71,7 @@ export function SiteHeader() {
             variant="ghost"
             size="sm"
             className="hidden sm:inline-flex text-xs text-muted-foreground hover:text-foreground"
+            nativeButton={false}
             render={<Link href="/chat" />}
           >
             <SparklesIcon className="size-3.5 text-primary mr-1" />

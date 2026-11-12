@@ -1,3 +1,6 @@
+// Handles repository-specific AI chat requests by authenticating users,
+// validating messages, generating code-based answers, and returning validated AI responses.
+
 import { auth } from "@clerk/nextjs/server";
 import { RepositoryChatBodySchema, RepositoryChatResponseSchema } from "@repo/types";
 import { NextResponse } from "next/server";

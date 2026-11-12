@@ -45,7 +45,7 @@ export async function getUserRepositories(token: string): Promise<CodeLensGitHub
   const github = createGitHubClient(token);
 
   try {
-    const { data } = await github.repos.listForAuthenticatedUser({
+    const data = await github.paginate(github.rest.repos.listForAuthenticatedUser, {
       sort: "updated",
       per_page: 100,
     });

@@ -1,3 +1,6 @@
+// Authenticates the user, retrieves their GitHub OAuth access token through Clerk,
+// and fetches their GitHub repositories using the GitHub API.
+
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 

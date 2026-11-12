@@ -7,6 +7,21 @@ const EMBEDDING_MODEL = "openai/text-embedding-3-small";
 const EMBEDDING_DIMENSIONS = 1536;
 export const DEFAULT_EMBEDDING_BATCH_SIZE = 50;
 
+export function getOpenRouterErrorStatus(error: unknown): number | undefined {
+  const seen = new Set<object>();
+  let current = error;
+
+  while (typeof current === "object" && current !== null && !seen.has(current)) {
+    seen.add(current);
+    if ("status" in current && typeof current.status === "number") {
+      return current.status;
+    }
+    current = "cause" in current ? current.cause : undefined;
+  }
+
+  return undefined;
+}
+
 export function createOpenRouterClient(): OpenAI {
   const apiKey = process.env.OPENROUTER_API_KEY;
 

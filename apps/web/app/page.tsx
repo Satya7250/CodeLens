@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { BrandMark } from "@/components/brand-mark";
 
 export default async function HomePage() {
   const { userId } = await auth();
@@ -25,9 +26,7 @@ export default async function HomePage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-              <SparklesIcon className="size-4" />
-            </div>
+            <BrandMark className="size-11 overflow-hidden rounded-xl shadow-sm" />
             <span className="text-lg font-bold tracking-tight">CodeLens</span>
           </Link>
 
@@ -48,6 +47,7 @@ export default async function HomePage() {
             {userId ? (
               <Button
                 size="sm"
+                nativeButton={false}
                 render={<Link href="/dashboard" />}
                 className="gap-1.5 shadow-sm text-xs sm:text-sm"
               >
@@ -59,6 +59,7 @@ export default async function HomePage() {
                 <Button
                   variant="ghost"
                   size="sm"
+                  nativeButton={false}
                   render={<Link href="/sign-in" />}
                   className="text-xs sm:text-sm"
                 >
@@ -66,6 +67,7 @@ export default async function HomePage() {
                 </Button>
                 <Button
                   size="sm"
+                  nativeButton={false}
                   render={<Link href="/sign-up" />}
                   className="gap-1.5 shadow-sm text-xs sm:text-sm"
                 >
@@ -108,6 +110,7 @@ export default async function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Button
               size="lg"
+              nativeButton={false}
               render={<Link href={userId ? "/dashboard" : "/sign-up"} />}
               className="w-full sm:w-auto h-11 px-6 gap-2 shadow-md"
             >
@@ -118,6 +121,7 @@ export default async function HomePage() {
             <Button
               variant="outline"
               size="lg"
+              nativeButton={false}
               render={<Link href={userId ? "/repositories" : "/sign-in"} />}
               className="w-full sm:w-auto h-11 px-6 gap-2"
             >
@@ -337,7 +341,7 @@ export default async function HomePage() {
       <footer className="mt-auto border-t bg-muted/30 py-8">
         <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
-            <SparklesIcon className="size-4 text-primary" />
+            <BrandMark className="size-8 overflow-hidden rounded-md" />
             <span className="font-semibold text-foreground">CodeLens</span>
             <span>·</span>
             <span>AI Codebase Assistant</span>

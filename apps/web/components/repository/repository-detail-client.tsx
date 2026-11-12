@@ -56,6 +56,7 @@ export function RepositoryDetailClient({ repository }: { repository: SerializedR
               variant="ghost"
               size="sm"
               className="-ml-2 h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+              nativeButton={false}
               render={<Link href="/repositories" />}
             >
               <ArrowLeftIcon className="size-3.5 mr-1" />

@@ -21,7 +21,12 @@ import { Badge } from "@/components/ui/badge";
 
 type ConversationEntry =
   | { role: "user"; content: string }
-  | { role: "assistant"; content: string; sources: RepositorySource[] };
+  | {
+      role: "assistant";
+      content: string;
+      sources: RepositorySource[];
+      searchMode: "hybrid" | "keyword";
+    };
 
 const MAX_HISTORY_MESSAGES = 8;
 
@@ -170,6 +175,7 @@ export function CodeChat({ repositoryId }: { repositoryId: string }) {
           role: "assistant",
           content: parsedResponse.data.answer,
           sources: parsedResponse.data.sources,
+          searchMode: parsedResponse.data.searchMode,
         },
       ]);
     } catch (error) {
@@ -293,6 +299,16 @@ export function CodeChat({ repositoryId }: { repositoryId: string }) {
                 </div>
 
                 <FormattedContent content={entry.content} />
+
+                {entry.role === "assistant" && entry.searchMode === "keyword" && (
+                  <div
+                    role="status"
+                    className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-300"
+                  >
+                    Semantic retrieval is temporarily unavailable. This answer uses keyword matches
+                    only and may miss related code.
+                  </div>
+                )}
 
                 {entry.role === "assistant" && entry.sources.length > 0 && (
                   <div className="mt-3 border-t border-border/60 pt-3 text-xs">

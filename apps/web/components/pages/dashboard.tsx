@@ -90,11 +90,22 @@ export function DashboardPage({
           description="Connect repositories, index codebases, and chat with your code using AI-powered search."
         />
         <div className="flex flex-wrap items-center gap-2">
-          <Button render={<Link href="/repositories" />} size="sm" className="gap-1.5 shadow-sm">
+          <Button
+            nativeButton={false}
+            render={<Link href="/repositories" />}
+            size="sm"
+            className="gap-1.5 shadow-sm"
+          >
             <PlusIcon className="size-4" />
             Connect Repository
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" render={<Link href="/chat" />}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            nativeButton={false}
+            render={<Link href="/chat" />}
+          >
             <MessagesSquareIcon className="size-4" />
             Open Chat
           </Button>
@@ -144,6 +155,7 @@ export function DashboardPage({
               variant="ghost"
               size="sm"
               className="text-xs text-primary"
+              nativeButton={false}
               render={<Link href="/repositories" />}
             >
               View all ({totalRepos})
@@ -163,7 +175,11 @@ export function DashboardPage({
                 Connect your GitHub repositories to generate embeddings, enable AST chunking, and
                 start chatting with your codebase.
               </CardDescription>
-              <Button render={<Link href="/repositories" />} className="gap-2 shadow-sm">
+              <Button
+                nativeButton={false}
+                render={<Link href="/repositories" />}
+                className="gap-2 shadow-sm"
+              >
                 <PlusIcon className="size-4" />
                 Connect your first repository
               </Button>
@@ -216,6 +232,7 @@ export function DashboardPage({
                       variant="outline"
                       size="sm"
                       className="flex-1 text-xs"
+                      nativeButton={false}
                       render={<Link href={`/repository/${repo.id}`} />}
                     >
                       Details
@@ -223,6 +240,7 @@ export function DashboardPage({
                     <Button
                       size="sm"
                       className="flex-1 text-xs gap-1"
+                      nativeButton={false}
                       render={<Link href={`/chat?repo=${repo.id}`} />}
                     >
                       <MessagesSquareIcon className="size-3.5" />
@@ -293,6 +311,7 @@ export function DashboardPage({
             <Button
               variant="outline"
               className="w-full justify-start text-xs sm:text-sm h-10 gap-2.5"
+              nativeButton={false}
               render={<Link href="/repositories" />}
             >
               <FolderGit2Icon className="size-4 text-primary" />
@@ -301,6 +320,7 @@ export function DashboardPage({
             <Button
               variant="outline"
               className="w-full justify-start text-xs sm:text-sm h-10 gap-2.5"
+              nativeButton={false}
               render={<Link href="/chat" />}
             >
               <MessagesSquareIcon className="size-4 text-primary" />
@@ -309,6 +329,7 @@ export function DashboardPage({
             <Button
               variant="outline"
               className="w-full justify-start text-xs sm:text-sm h-10 gap-2.5"
+              nativeButton={false}
               render={<Link href="/settings" />}
             >
               <ActivityIcon className="size-4 text-primary" />

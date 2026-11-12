@@ -39,6 +39,7 @@ export const RepositoryChatResponseSchema = z
   .object({
     answer: z.string().trim(),
     sources: z.array(RepositorySourceSchema),
+    searchMode: z.enum(["hybrid", "keyword"]).default("hybrid"),
   })
   .strict();
 

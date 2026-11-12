@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { isValidRepositoryId } from "@/lib/repositories/validate-repository-id";
+
 import { startIndexing } from "@/lib/indexing/start-indexing";
 import { syncUser } from "@/lib/auth/sync-user";
 
@@ -20,6 +22,10 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     }
 
     const { id } = await params;
+    if (!isValidRepositoryId(id)) {
+      return NextResponse.json({ error: "Invalid repository ID." }, { status: 400 });
+    }
+
     const stats = await startIndexing(id, user.id, clerkUserId);
 
     // Invalidate the repository detail page cache so it re-fetches fresh data

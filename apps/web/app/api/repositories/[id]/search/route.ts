@@ -1,3 +1,6 @@
+// Handles repository-specific semantic search by authenticating users,
+// validating search queries, retrieving relevant code snippets, and returning search results.
+
 import { auth } from "@clerk/nextjs/server";
 import { RepositorySearchBodySchema } from "@repo/types";
 import { NextResponse } from "next/server";

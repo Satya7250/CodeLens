@@ -2,20 +2,17 @@ import "server-only";
 
 import { searchCodeChunksByEmbedding, searchCodeChunksByText } from "@repo/db";
 
-import { generateEmbeddings } from "@/lib/embeddings/openrouter";
+import { generateEmbeddings, getOpenRouterErrorStatus } from "@/lib/embeddings/openrouter";
 import { getRepositoryForUser } from "@/lib/repositories/get-repository";
+import { executeHybridSearch } from "./hybrid-search-core";
 import { rankCodeChunks } from "./rank-code-chunks";
+import { SemanticSearchProviderError } from "./semantic-search-error";
 import { extractIdentifierAnchors, extractSearchTerms } from "./search-terms";
 
 const MAX_SEMANTIC_QUERY_LENGTH = 5000;
 const HYBRID_CANDIDATE_LIMIT = 40;
 
-export class SemanticSearchProviderError extends Error {
-  constructor() {
-    super("Unable to generate a search embedding. Please try again later.");
-    this.name = "SemanticSearchProviderError";
-  }
-}
+export { SemanticSearchProviderError } from "./semantic-search-error";
 
 function normalizeQuery(query: string, limit: number): string {
   const normalizedQuery = query.trim();
@@ -43,8 +40,10 @@ async function getQueryEmbedding(repositoryId: string, databaseUserId: string, q
       throw new Error("Embedding generation returned no result.");
     }
     return embedding;
-  } catch {
-    throw new SemanticSearchProviderError();
+  } catch (error) {
+    const status = getOpenRouterErrorStatus(error);
+    console.error("OpenRouter query embedding generation failed.", { status });
+    throw new SemanticSearchProviderError(status, { cause: error });
   }
 }
 
@@ -65,28 +64,23 @@ export async function hybridSearch(
   query: string,
   limit = 8,
 ) {
+  return (await hybridSearchWithMode(repositoryId, databaseUserId, query, limit)).chunks;
+}
+
+export async function hybridSearchWithMode(
+  repositoryId: string,
+  databaseUserId: string,
+  query: string,
+  limit = 8,
+) {
   const normalizedQuery = normalizeQuery(query, limit);
-  const embedding = await getQueryEmbedding(repositoryId, databaseUserId, normalizedQuery);
   const terms = extractSearchTerms(normalizedQuery);
-
-  const [semanticChunks, keywordChunks] = await Promise.all([
-    searchCodeChunksByEmbedding(repositoryId, embedding, HYBRID_CANDIDATE_LIMIT),
-    searchCodeChunksByText(repositoryId, terms, HYBRID_CANDIDATE_LIMIT),
-  ]);
-
-  const identifierAnchors = extractIdentifierAnchors(normalizedQuery);
-  if (
-    identifierAnchors.some(
-      (anchor) =>
-        ![...semanticChunks, ...keywordChunks].some(
-          (chunk) =>
-            chunk.filePath.toLowerCase().includes(anchor) ||
-            chunk.content.toLowerCase().includes(anchor),
-        ),
-    )
-  ) {
-    return [];
-  }
-
-  return rankCodeChunks(semanticChunks, keywordChunks, limit);
+  return executeHybridSearch(
+    () => getQueryEmbedding(repositoryId, databaseUserId, normalizedQuery),
+    (embedding) => searchCodeChunksByEmbedding(repositoryId, embedding, HYBRID_CANDIDATE_LIMIT),
+    () => searchCodeChunksByText(repositoryId, terms, HYBRID_CANDIDATE_LIMIT),
+    rankCodeChunks,
+    extractIdentifierAnchors(normalizedQuery),
+    limit,
+  );
 }

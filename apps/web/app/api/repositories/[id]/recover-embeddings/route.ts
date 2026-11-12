@@ -1,3 +1,6 @@
+// Handles repository embedding recovery by authenticating users, validating repository access,
+// triggering missing embedding recovery, and returning recovery statistics.
+
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";

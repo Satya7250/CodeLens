@@ -258,7 +258,9 @@ export function RepositorySelector() {
               </div>
             ) : null}
 
-            {!savedReposQuery.isLoading && filteredSavedRepos.length === 0 ? (
+            {!savedReposQuery.isLoading &&
+            !savedReposQuery.isError &&
+            filteredSavedRepos.length === 0 ? (
               <div className="rounded-2xl border border-dashed p-8 text-center">
                 <FolderGit2Icon className="mx-auto size-8 text-muted-foreground mb-2" />
                 <h4 className="text-sm font-semibold">
@@ -325,6 +327,7 @@ export function RepositorySelector() {
                         size="sm"
                         variant="default"
                         className="text-xs gap-1 shadow-sm"
+                        nativeButton={false}
                         render={<Link href={`/chat?repo=${repo.id}`} />}
                       >
                         <MessagesSquareIcon className="size-3.5" />
@@ -335,6 +338,7 @@ export function RepositorySelector() {
                         size="sm"
                         variant="outline"
                         className="text-xs"
+                        nativeButton={false}
                         render={<Link href={`/repository/${repo.id}`} />}
                       >
                         Details

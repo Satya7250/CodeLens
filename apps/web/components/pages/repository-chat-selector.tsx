@@ -56,6 +56,7 @@ function RepositoryChatSelectorInner({ repositories }: { repositories: Repositor
                 variant="outline"
                 size="sm"
                 className="self-start sm:self-auto text-xs gap-1.5"
+                nativeButton={false}
                 render={<Link href="/repositories" />}
               >
                 <PlusIcon className="size-3.5" />
@@ -77,6 +78,7 @@ function RepositoryChatSelectorInner({ repositories }: { repositories: Repositor
                 </p>
               </div>
               <Button
+                nativeButton={false}
                 render={<Link href="/repositories" />}
                 className="gap-2 shadow-sm text-xs sm:text-sm"
               >
@@ -140,6 +142,7 @@ function RepositoryChatSelectorInner({ repositories }: { repositories: Repositor
                   <Button
                     size="sm"
                     className="shrink-0 text-xs gap-1.5 shadow-sm"
+                    nativeButton={false}
                     render={<Link href={`/repository/${selectedRepository.id}`} />}
                   >
                     <DatabaseZapIcon className="size-3.5" />

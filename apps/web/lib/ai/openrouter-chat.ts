@@ -2,11 +2,14 @@ import "server-only";
 
 import type OpenAI from "openai";
 
-import { createOpenRouterClient } from "@/lib/embeddings/openrouter";
+import { createOpenRouterClient, getOpenRouterErrorStatus } from "@/lib/embeddings/openrouter";
 
 export class OpenRouterChatError extends Error {
-  constructor(message = "The AI provider could not complete the request. Please try again later.") {
-    super(message);
+  constructor(
+    message = "The AI provider could not complete the request. Please try again later.",
+    options?: ErrorOptions,
+  ) {
+    super(message, options);
     this.name = "OpenRouterChatError";
   }
 }
@@ -46,6 +49,14 @@ export async function generateChatCompletion(messages: OpenRouterChatMessage[]):
     if (error instanceof OpenRouterChatError) {
       throw error;
     }
-    throw new OpenRouterChatError();
+    const status = getOpenRouterErrorStatus(error);
+    console.error("OpenRouter chat completion failed.", { status });
+    if (status === 401) {
+      throw new OpenRouterChatError(
+        "OpenRouter rejected the API key. Update OPENROUTER_API_KEY in apps/web/.env.local and restart the app.",
+        { cause: error },
+      );
+    }
+    throw new OpenRouterChatError(undefined, { cause: error });
   }
 }

@@ -103,6 +103,11 @@ export async function getRepositoryTreeWithCommit(
       tree_sha: treeSha,
       recursive: "true",
     });
+    if (treeData.truncated) {
+      throw new Error(
+        `GitHub returned a truncated repository tree for ${repositoryOwner}/${repositoryName}.`,
+      );
+    }
 
     const treeEntries = (treeData.tree as GitHubTreeNode[]).filter(
       (

@@ -14,13 +14,13 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { BrandMark } from "@/components/brand-mark";
 
 import {
   LayoutDashboardIcon,
   FolderGit2Icon,
   MessagesSquareIcon,
   Settings2Icon,
-  SparklesIcon,
 } from "lucide-react";
 
 const data = {
@@ -58,9 +58,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               render={<Link href="/dashboard" />}
               className="flex items-center gap-2.5 p-1.5 transition-colors hover:bg-sidebar-accent"
             >
-              <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-                <SparklesIcon className="size-4" />
-              </div>
+              <BrandMark className="size-10 overflow-hidden rounded-xl shadow-sm" />
               <div className="flex flex-col text-left">
                 <span className="text-sm font-semibold tracking-tight text-sidebar-foreground">
                   CodeLens

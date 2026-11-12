@@ -1,3 +1,6 @@
+// Provides GET and POST API endpoints to retrieve and save user-specific repositories in the database,
+// with authentication, user synchronization, request validation, and response serialization.
+
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { RepositoryCreateSchema } from "@repo/types";

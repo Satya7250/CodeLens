@@ -25,8 +25,19 @@ export function SettingsPage() {
   const { openUserProfile } = useClerk();
   const { theme, setTheme } = useTheme();
 
-  const handleRefreshGitHub = () => {
-    toast.success("GitHub OAuth status refreshed.");
+  const handleRefreshGitHub = async () => {
+    try {
+      const response = await fetch("/api/github/repositories");
+      if (!response.ok) {
+        toast.error("Unable to verify GitHub access. Check your Clerk GitHub connection.");
+        return;
+      }
+
+      toast.success("GitHub repository access is available.");
+    } catch (error) {
+      console.error("Failed to verify GitHub repository access.", error);
+      toast.error("Unable to verify GitHub access. Please try again.");
+    }
   };
 
   return (
@@ -185,7 +196,7 @@ export function SettingsPage() {
                   variant="outline"
                   className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                 >
-                  Connected
+                  Not verified
                 </Badge>
               </div>
               <p className="text-muted-foreground leading-relaxed">
@@ -206,7 +217,7 @@ export function SettingsPage() {
               className="gap-1.5 text-xs"
             >
               <RefreshCwIcon className="size-3.5" />
-              Refresh Connection
+              Check Connection
             </Button>
           </CardContent>
         </Card>
