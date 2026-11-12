@@ -74,6 +74,13 @@ export async function generateChatCompletion(
       );
     }
 
+    if (status === 402) {
+      throw new OpenRouterChatError(
+        "OpenRouter could not process this request. Check that your account has available credits and that the selected chat model is available to your account.",
+        { cause: error },
+      );
+    }
+
     throw new OpenRouterChatError(undefined, {
       cause: error,
     });

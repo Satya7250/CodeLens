@@ -1,6 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import {
+  Children,
+  isValidElement,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import {
   CheckIcon,
   CopyIcon,
@@ -11,6 +20,8 @@ import {
   SparklesIcon,
 } from "lucide-react";
 import { RepositoryChatResponseSchema, type ChatMessage, type RepositorySource } from "@repo/types";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -77,36 +88,106 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
   );
 }
 
-function FormattedContent({ content }: { content: string }) {
-  // Parse markdown code blocks ```lang ... ```
-  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
-  const parts: React.ReactNode[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
+const markdownComponents: Components = {
+  a({ href, children }) {
+    const isExternal = href?.startsWith("https://") || href?.startsWith("http://");
 
-  while ((match = codeBlockRegex.exec(content)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(
-        <span key={`text-${lastIndex}`} className="whitespace-pre-wrap leading-relaxed">
-          {content.slice(lastIndex, match.index)}
-        </span>,
-      );
-    }
-    const language = match[1];
-    const code = match[2]?.trimEnd() ?? "";
-    parts.push(<CodeBlock key={`code-${match.index}`} code={code} language={language} />);
-    lastIndex = match.index + match[0].length;
-  }
-
-  if (lastIndex < content.length) {
-    parts.push(
-      <span key={`text-${lastIndex}`} className="whitespace-pre-wrap leading-relaxed">
-        {content.slice(lastIndex)}
-      </span>,
+    return (
+      <a
+        href={href}
+        target={isExternal ? "_blank" : undefined}
+        rel={isExternal ? "noopener noreferrer" : undefined}
+        className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+      >
+        {children}
+      </a>
     );
-  }
+  },
+  blockquote({ children }) {
+    return (
+      <blockquote className="my-4 border-l-2 border-primary/40 pl-4 text-muted-foreground">
+        {children}
+      </blockquote>
+    );
+  },
+  code({ className, children }) {
+    return (
+      <code
+        className={`rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.9em] ${className ?? ""}`}
+      >
+        {children}
+      </code>
+    );
+  },
+  h1({ children }) {
+    return <h1 className="mb-3 mt-6 text-xl font-semibold tracking-tight">{children}</h1>;
+  },
+  h2({ children }) {
+    return <h2 className="mb-2 mt-5 text-lg font-semibold tracking-tight">{children}</h2>;
+  },
+  h3({ children }) {
+    return <h3 className="mb-2 mt-4 text-base font-semibold">{children}</h3>;
+  },
+  li({ children }) {
+    return <li className="my-1 pl-1 leading-6">{children}</li>;
+  },
+  ol({ children }) {
+    return <ol className="my-3 list-decimal space-y-1 pl-6">{children}</ol>;
+  },
+  p({ children }) {
+    return <p className="my-3 leading-7 first:mt-0 last:mb-0">{children}</p>;
+  },
+  pre({ children }) {
+    const child = Children.toArray(children)[0];
 
-  return <div className="text-xs sm:text-sm">{parts}</div>;
+    if (
+      isValidElement<{ children?: ReactNode; className?: string }>(child) &&
+      typeof child.props.children === "string"
+    ) {
+      const language = child.props.className?.match(/language-([\w-]+)/)?.[1];
+      return <CodeBlock code={child.props.children.replace(/\n$/, "")} language={language} />;
+    }
+
+    return <pre className="my-3 overflow-x-auto rounded-xl bg-muted p-4 text-sm">{children}</pre>;
+  },
+  strong({ children }) {
+    return <strong className="font-semibold text-foreground">{children}</strong>;
+  },
+  table({ children }) {
+    return (
+      <div className="my-4 overflow-x-auto rounded-xl border">
+        <table className="w-full border-collapse text-left text-sm">{children}</table>
+      </div>
+    );
+  },
+  td({ children }) {
+    return <td className="border-t px-3 py-2 align-top">{children}</td>;
+  },
+  th({ children }) {
+    return <th className="bg-muted/70 px-3 py-2 font-semibold">{children}</th>;
+  },
+  ul({ children }) {
+    return <ul className="my-3 list-disc space-y-1 pl-6">{children}</ul>;
+  },
+};
+
+function linkCitations(content: string): string {
+  return content
+    .split(/(```[\s\S]*?```|~~~[\s\S]*?~~~)/g)
+    .map((part, index) =>
+      index % 2 === 0 ? part.replace(/\[Source\s+(\d+)\]/gi, "[Source $1](#source-$1)") : part,
+    )
+    .join("");
+}
+
+function FormattedContent({ content }: { content: string }) {
+  return (
+    <div className="min-w-0 break-words text-sm text-foreground">
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+        {linkCitations(content)}
+      </ReactMarkdown>
+    </div>
+  );
 }
 
 export function CodeChat({ repositoryId }: { repositoryId: string }) {
@@ -275,7 +356,7 @@ export function CodeChat({ repositoryId }: { repositoryId: string }) {
                 className={
                   entry.role === "user"
                     ? "ml-auto max-w-[90%] sm:max-w-[80%] rounded-2xl bg-primary px-4 py-3 text-primary-foreground shadow-sm"
-                    : "mr-auto max-w-[98%] sm:max-w-[90%] space-y-3 rounded-2xl border bg-card px-4 py-3.5 shadow-sm"
+                    : "mr-auto w-full max-w-[98%] space-y-3 rounded-2xl border bg-card px-4 py-4 shadow-sm sm:px-5"
                 }
               >
                 <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-2 mb-2">
@@ -311,23 +392,36 @@ export function CodeChat({ repositoryId }: { repositoryId: string }) {
                 )}
 
                 {entry.role === "assistant" && entry.sources.length > 0 && (
-                  <div className="mt-3 border-t border-border/60 pt-3 text-xs">
-                    <p className="mb-2 font-medium flex items-center gap-1.5 text-foreground">
+                  <section className="mt-4 border-t border-border/60 pt-3 text-xs">
+                    <h3 className="mb-2 flex items-center gap-1.5 font-medium text-foreground">
                       <FileCodeIcon className="size-3.5 text-primary" />
-                      Referenced Sources ({entry.sources.length})
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {entry.sources.map((source) => (
-                        <Badge
+                      Sources
+                      <Badge variant="outline" className="ml-1">
+                        {entry.sources.length}
+                      </Badge>
+                    </h3>
+                    <ol className="grid gap-2 sm:grid-cols-2">
+                      {entry.sources.map((source, sourceIndex) => (
+                        <li
                           key={source.chunkId}
-                          variant="secondary"
-                          className="font-mono text-[11px] font-normal py-1 px-2 text-muted-foreground hover:text-foreground transition-colors"
+                          id={`source-${sourceIndex + 1}`}
+                          className="flex min-w-0 items-start gap-2.5 rounded-xl border bg-muted/20 p-2.5"
                         >
-                          {source.filePath}:{source.startLine}-{source.endLine}
-                        </Badge>
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+                            {sourceIndex + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="break-all font-mono text-[11px] text-foreground">
+                              {source.filePath}
+                            </p>
+                            <p className="mt-1 text-[10px] text-muted-foreground">
+                              Lines {source.startLine}-{source.endLine}
+                            </p>
+                          </div>
+                        </li>
                       ))}
-                    </div>
-                  </div>
+                    </ol>
+                  </section>
                 )}
               </article>
             ))
@@ -344,8 +438,12 @@ export function CodeChat({ repositoryId }: { repositoryId: string }) {
         </div>
 
         {errorMessage && (
-          <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs sm:text-sm text-destructive">
-            {errorMessage}
+          <div
+            role="alert"
+            className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive sm:text-sm"
+          >
+            <p className="font-semibold">We couldn't generate a reply</p>
+            <p className="mt-1">{errorMessage}</p>
           </div>
         )}
 
