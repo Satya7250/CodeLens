@@ -71,6 +71,8 @@ Set `DATABASE_URL` in the root `.env` for Drizzle and in `apps/web/.env.local` f
 
 Do not commit `.env` or `apps/web/.env.local`, expose secret keys in browser code, or share credentials in issue reports. The `.env.example` values are placeholders, not working credentials.
 
+For Vercel deployments, configure all five variables above in the project environment for the Production environment (and Preview/Development if those deployments need the app). `DATABASE_URL` must point to the deployed PostgreSQL database.
+
 ### 3. Configure Clerk and GitHub
 
 1. Create a Clerk application and copy its publishable and secret keys into `apps/web/.env.local`.
